@@ -1,0 +1,39 @@
+data
+imgs
+*.pyc
+**/__pycache__
+
+# vscode
+.vscode
+.vscode-server
+
+# *.prof
+*.prof
+cachegrind.*
+
+# Maps (separate repo, not a submodule)
+qcraft-maps-china
+qcraft-maps
+
+# Mac specific files
+.DS_Store
+
+# angular
+node_modules
+
+# idea
+.idea
+.ijwb
+*.project
+*.history
+*.iml
+
+
+
+# Temporary files
+tmp
+temp
+log
+logs
+
+/data/
