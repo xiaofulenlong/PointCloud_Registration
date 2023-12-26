@@ -1,106 +1,29 @@
 import numpy as np
-from sklearn.neighbors import KDTree
-from tqdm import tqdm
+import open3d as o3d
 
-def compute_fpfh_descriptor(
-    keypoints_indices: np.ndarray[np.int32],
-    cloud_points: np.ndarray[np.float64],
-    normals: np.ndarray[np.float64],
-    radius: float,
-    n_bins: int,
-    decorrelated: bool = False,
-    verbose: bool = True,
-    disable_progress_bars: bool = True,
-) -> np.ndarray[np.float64]:
-    kdtree = KDTree(cloud_points)
 
-    neighborhoods, distances = kdtree.query_radius(
-        cloud_points, radius, return_distance=True
+def compute_fpfh_descriptor(cloud_path,Point_index):
+    """
+    input:
+        str
+        np.ndarray[np.float64]
+    output:
+         np.ndarray[np.float64]
+    
+    """
+    #读取点云数据
+    pointCloud = o3d.io.read_point_cloud(cloud_path)
+    # 计算 FPFH 特征
+    radius_normal = 0.1  # 法向量计算时的搜索半径
+    radius_feature = 0.3  # 计算 FPFH 特征时的搜索半径
+
+    pointCloud.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=radius_normal, max_nn=30))
+    fpfh = o3d.pipelines.registration.compute_fpfh_feature(
+        pointCloud,
+        o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100)
     )
-    spfh = np.zeros(
-        (cloud_points.shape[0], n_bins * 3)
-        if decorrelated
-        else (cloud_points.shape[0], n_bins, n_bins, n_bins)
-    )
-    neighborhood_size = 0
 
-    for i, point in tqdm(
-        enumerate(cloud_points),
-        desc="SPFH",
-        total=cloud_points.shape[0],
-        disable=disable_progress_bars,
-    ):
-        if neighborhoods[i].shape[0] > 0:
-            neighbors = cloud_points[neighborhoods[i]]
-            neighbors_normals = normals[neighborhoods[i]]
-            centered_neighbors = neighbors - point
-            dist = np.linalg.norm(centered_neighbors, axis=1)
-            u = normals[i]
-            v = np.cross(centered_neighbors[dist > 0], u)
-            w = np.cross(u, v)
-            alpha = np.einsum("ij,ij->i", v, neighbors_normals[dist > 0])
-            phi = centered_neighbors[dist > 0].dot(u) / dist[dist > 0]
-            theta = np.arctan2(
-                np.einsum("ij,ij->i", neighbors_normals[dist > 0], w),
-                neighbors_normals[dist > 0].dot(u),
-            )
-            if decorrelated:
-                spfh[i, :] = (
-                    np.vstack(
-                        (
-                            np.histogram(
-                                alpha,
-                                bins=n_bins,
-                                range=(-1, 1),
-                            )[0],
-                            np.histogram(
-                                phi,
-                                bins=n_bins,
-                                range=(-1, 1),
-                            )[0],
-                            np.histogram(
-                                theta,
-                                bins=n_bins,
-                                range=(-np.pi / 2, np.pi / 2),
-                            )[0],
-                        )
-                    ).T
-                    / neighborhoods[i].shape[0]
-                )
-            else:
-                spfh[i, :, :, :] = (
-                    np.histogramdd(
-                        np.vstack((alpha, phi, theta)).T,
-                        bins=n_bins,
-                        range=[(-1, 1), (-1, 1), (-np.pi / 2, np.pi / 2)],
-                    )[0]
-                    / neighborhoods[i].shape[0]
-                )
-            neighborhood_size += neighborhoods[i].shape[0]
+    # 获取 FPFH 特征矩阵
+    fpfh_data = np.asarray(fpfh.data[:,Point_index])
 
-    if verbose:
-        print(
-            f"Mean neighborhood size over the whole point cloud: {neighborhood_size / cloud_points.shape[0]:.2f}"
-        )
-
-    spfh = spfh.reshape(cloud_points.shape[0], -1)
-    fpfh = np.zeros(
-        (keypoints_indices.shape[0], n_bins * 3 if decorrelated else n_bins**3)
-    )
-    for i, neighborhood in tqdm(
-        enumerate(neighborhoods[keypoints_indices]),
-        desc="FPFH",
-        total=keypoints_indices.shape[0],
-        delay=0.5,
-        disable=disable_progress_bars,
-    ):
-        with np.errstate(invalid="ignore", divide="ignore"):
-            fpfh[i] = (
-                spfh[keypoints_indices[i]]
-                # should be ok to encounter a RuntimeWarning here since we apply a mask after the divide
-                + (spfh[neighborhood] / distances[keypoints_indices[i]][:, None])[
-                    distances[keypoints_indices[i]] > 0
-                ].sum(axis=0)
-                / neighborhood.shape[0]
-            )
-    return fpfh
+    return fpfh_data

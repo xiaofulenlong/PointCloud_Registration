@@ -1,12 +1,50 @@
 import numpy as np
 import cvxpy as cp
+from utils import *
+from tqdm import tqdm
+import copy
+from sklearn.neighbors import NearestNeighbors
 
-def ini_SVD_Rt():
-    return
+
+def ini_SVD_Rt(Y,X):
+    """
+    Input:   Y:目标点云,X:去匹配点云
+    Output:  R,t 旋转向量  
+    """
+    Y_mean = np.mean(Y, axis=0)
+    X_mean = np.mean(X, axis=0)
+    Y_cor = Y - Y_mean
+    X_cor = X - X_mean
+    
+    # 使用奇异值分解（SVD）估计旋转矩阵
+    H = np.dot(X_cor.T, Y_cor)
+    U, S, Vt = np.linalg.svd(H)
+    R = np.dot(Vt.T, U.T)
+    t = X_mean - np.dot(R, Y_mean)
+    return R,t
 
 
-def ConvexSolveProblem():
-    return
+def find_nn_corr(src, tgt):
+    ''' 
+    使用了最近邻搜索算法
+    Input:
+        - src: Source point cloud (n*3)
+        - tgt: Target point cloud (n*3)
+    Output: 找到了源点云src中每个点对应于目标点云tgt中的最近邻点的索引。 
+        - idxs:  (n, np.array)
+    '''
+
+    ''' Way1: Sklearn'''
+    if src.shape[1] != 3: src = src.T
+    if tgt.shape[1] != 3: tgt = tgt.T
+    
+    if not isinstance(src, np.ndarray):
+        src = np.asarray(src.points)    # (16384*3)
+        tgt = np.asarray(tgt.points)
+    
+    neighbors = NearestNeighbors(n_neighbors=1, algorithm='kd_tree').fit(tgt)
+    dists, idxs = neighbors.kneighbors(src)  # (16384*1), (16384*1)
+    return idxs.flatten()
 
 
 
@@ -82,4 +120,36 @@ class LinearRelaxationSolver:
         t = meanY - (self.R0 @ meanX)
 
         return self.R0, t
+
+
+
+def ConvexSolveProblem(solver1,solver2,R,t,Y,X,descriptors_Y,descriptors_X,iters):
+    """
+    input:
+        solver1,solver2:松弛器
+        R,t:初始化的旋转矩阵
+        Y,X:点云numpy[n,3]
+        descriptors_Y,descriptors_X:特征值
+    output:
+        R,t:旋转矩阵
+    """
+    
+    for _ in tqdm(range(iters)):
+
+        X_ = ((R @ copy.deepcopy(X)).T + t).T
+        corr = find_nn_corr(X_, Y)                  # Find correspondence
+
+        R_, _ = solver2.solve(X_, Y[:,:corr])
+        _,t_ = solver1.solve(X, Y)
+        if (np.linalg.norm(R_-R) < 1e-6):
+            break
+
+        R = R_ @ R              #  更新 R, t
+        t = R_ @ t + t_
+         
+
+
+    return R,t
+
+
 
