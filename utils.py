@@ -46,28 +46,37 @@ def plyread(path):
 
 #========== 可视化 ===============
 
-def Visual_Pc(pcds, labels=None, path=None):
+def Visual_Pc(pcds, labels=None, path=None,isVisible=True):
+    n = len(pcds) #个数
     if labels is None: 
-        labels = ['Original', 'Corrupted', 'Recovered']
+        labels = ['Y_target','X_source', 'Recovered']
+    colors = ["red", "blue", "green"]
 
-    dpi = 80
-    fig = plt.figure(figsize=(1440/dpi, 720/dpi), dpi=dpi)
-    ax = fig.add_subplot(projection='3d')
+    # Create a 3D plot
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection="3d")
 
-    # ax.set_xlim3d([-3,3]), ax.set_ylim3d([-3,3]), ax.set_zlim3d([-3,3])
-    ax.set_proj_type('persp')
+    # Plot the registered and target point clouds
+    for i in range(n):
+        ax.scatter(
+            pcds[i][:, 0],
+            pcds[i][:, 1],
+            pcds[i][:, 2],
+            c=colors[i],
+            label=labels[i],
+            s=0.1,
+        )
+    # Set labels and legend
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.legend()
 
-    for points, label in zip(pcds, labels):
-        ax.scatter(points[:, 0], points[:, 2], points[:, 1],
-                marker='.', alpha=0.5, edgecolors='none', label=label)
-
-    plt.legend()
-    
-
-    # plt.show()
     if path is not None:
         plt.savefig(f"/home/hrr/my_code/my_cvxpy/PointCloud_Registration/imgs/{path}.png")
-    # plt.clf()
+    if isVisible:
+        plt.show()
+
         
 
 

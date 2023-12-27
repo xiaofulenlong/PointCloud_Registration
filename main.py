@@ -37,18 +37,25 @@ descriptors_X1 = compute_fpfh_descriptor(PC_path_X1,keypoints_X1)
 
 
 #匹配
-Y_indices,X1_indices= find_descriptors_matches(descriptors_Y,descriptors_X1)
+"""
+match_indices[:,0]:Y对应的坐标
+match_indices[:,1]:X对应的坐标
+"""
+match_indices= find_descriptors_matches(descriptors_Y,descriptors_X1)
 
 #通过凸优化方法计算R，t
     #初始化R,t,使用奇异值分解【如果采取随机初始化误差会非常之大】
-R,t = ini_SVD_Rt(Y[Y_indices,:],X1[X1_indices,:])
+R,t = ini_SVD_Rt(Y[match_indices[:,0]],X1[match_indices[:,1]])
 
     #松弛器
 solver1 = LinearRelaxationSolver() #还算靠谱，位置不错，但是旋转的角度很差
 solver2 = ConvexRelaxationSolver() #旋转角度不错
     #解决:
-R,t = ConvexSolveProblem(solver1,solver2,R,t,Y,X1,descriptors_Y,descriptors_X1,iters=10) 
-
+R,t = ConvexSolveProblem(solver1,solver2,R,t,Y[match_indices[:,0]],X1[match_indices[:,1]],iters=10) 
+print(R)
+print(t)
 
 #可视化以及loss分析
-Visual_Pc([point_cloudY.T, point_cloudX1.T, (R @ point_cloudX1).T + t],['Y_target','X_source', 'Recovered'],f"test_X2")
+# Visual_Pc([point_cloudY.T, point_cloudX1.T, (R @ point_cloudX1.T).T + t],['Y_target','X_source', 'Recovered'],f"test_X1")
+
+Visual_Pc([point_cloudY.T, point_cloudX1.T],['Y_target','X_source'],f"origin")

@@ -123,24 +123,27 @@ class LinearRelaxationSolver:
 
 
 
-def ConvexSolveProblem(solver1,solver2,R,t,Y,X,descriptors_Y,descriptors_X,iters):
+def ConvexSolveProblem(solver1,solver2,R,t,Y,X,iters):
     """
     input:
         solver1,solver2:松弛器
         R,t:初始化的旋转矩阵
-        Y,X:点云numpy[n,3]
-        descriptors_Y,descriptors_X:特征值
+        Y,X:点云numpy(3,N)
+        
     output:
         R,t:旋转矩阵
     """
+    if Y.shape[0] != 3: Y = Y.T
+    if X.shape[0] != 3: X = X.T 
     
+
+    #Y:[3,n],X:[3,n]
     for _ in tqdm(range(iters)):
 
-        X_ = ((R @ copy.deepcopy(X)).T + t).T
-        corr = find_nn_corr(X_, Y)                  # Find correspondence
+        X_ = ((R @ copy.deepcopy(X)).T + t).T   
 
-        R_, _ = solver2.solve(X_, Y[:,:corr])
-        _,t_ = solver1.solve(X, Y)
+        R_, _ = solver2.solve(X_, Y )
+        _,t_ = solver1.solve(X , Y )
         if (np.linalg.norm(R_-R) < 1e-6):
             break
 

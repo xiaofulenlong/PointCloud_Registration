@@ -26,4 +26,4 @@ def compute_fpfh_descriptor(cloud_path,Point_index):
     # 获取 FPFH 特征矩阵
     fpfh_data = np.asarray(fpfh.data[:,Point_index])
 
-    return fpfh_data
+    return fpfh_data.T
