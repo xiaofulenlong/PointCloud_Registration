@@ -5,7 +5,7 @@ from desc_match import *
 from Convex_solver import *
 
 #路径
-json_path = "/home/hrr/my_code/my_cvxpy/PointCloud_Registration/data/bunny-pcd/"
+json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/bunny-pcd/"
 
 #读取点云数据
 """
@@ -51,11 +51,11 @@ R,t = ini_SVD_Rt(Y[match_indices[:,0]],X1[match_indices[:,1]])
 solver1 = LinearRelaxationSolver() #还算靠谱，位置不错，但是旋转的角度很差
 solver2 = ConvexRelaxationSolver() #旋转角度不错
     #解决:
-R,t = ConvexSolveProblem(solver1,solver2,R,t,Y[match_indices[:,0]],X1[match_indices[:,1]],iters=10) 
+R,t = ConvexSolveProblem(solver1,solver2,R,t,Y[match_indices[:,0]],X1[match_indices[:,1]],iters=2) 
 print(R)
 print(t)
 
 #可视化以及loss分析
 # Visual_Pc([point_cloudY.T, point_cloudX1.T, (R @ point_cloudX1.T).T + t],['Y_target','X_source', 'Recovered'],f"test_X1")
-
-Visual_Pc([point_cloudY.T, point_cloudX1.T],['Y_target','X_source'],f"origin")
+res = (R @ point_cloudX1.T).T + t
+Visual_Pc([point_cloudY, point_cloudX1,res])

@@ -1,6 +1,5 @@
-import numpy as np
 import open3d as o3d
-
+import numpy as np
 
 def compute_fpfh_descriptor(cloud_path,Point_index):
     """

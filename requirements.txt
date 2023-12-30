@@ -1,0 +1,8 @@
+cvxpy==1.4.1
+matplotlib==3.8.0
+numpy==1.26.2
+open3d==0.15.1
+plyfile==1.0.2
+scikit_learn==1.3.0
+scipy==1.11.4
+tqdm==4.66.1

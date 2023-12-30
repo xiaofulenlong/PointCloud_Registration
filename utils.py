@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from plyfile import PlyData
 import json
 import numpy as np 
+import open3d as o3d
 
 #=========== load data =============
 #读取json中所需数据
@@ -46,40 +47,26 @@ def plyread(path):
 
 #========== 可视化 ===============
 
-def Visual_Pc(pcds, labels=None, path=None,isVisible=True):
-    n = len(pcds) #个数
-    if labels is None: 
-        labels = ['Y_target','X_source', 'Recovered']
-    colors = ["red", "blue", "green"]
+def Visual_Pc(pcd_nparrays, labels=None, path=None,isVisible=True):
+    def changeToPcd(nparray):
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(nparray)
+        return pcd
+    
+    colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    all_pcd = o3d.geometry.PointCloud()
+    for i, nparray in enumerate(pcd_nparrays):
+        points = changeToPcd(nparray)
+        # pcd = o3d.geometry.PointCloud()
+        # pcd.points = o3d.utility.Vector3dVector(points) 
 
-    # Create a 3D plot
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection="3d")
-
-    # Plot the registered and target point clouds
-    for i in range(n):
-        ax.scatter(
-            pcds[i][:, 0],
-            pcds[i][:, 1],
-            pcds[i][:, 2],
-            c=colors[i],
-            label=labels[i],
-            s=0.1,
-        )
-    # Set labels and legend
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
-    ax.legend()
-
-    if path is not None:
-        plt.savefig(f"/home/hrr/my_code/my_cvxpy/PointCloud_Registration/imgs/{path}.png")
-    if isVisible:
-        plt.show()
-
+        # label = o3d.geometry.Text3D(labels[i])
+        points.paint_uniform_color(colors[i])
+        all_pcd += points
         
-
-
+    if isVisible:
+        o3d.visualization.draw_geometries([all_pcd])
+        
 
 
 def skew_sym(x):    
