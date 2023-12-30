@@ -1,5 +1,4 @@
 from utils import *
-from keypoints_select import *
 from FPFH_desc import *
 from desc_match import *
 from Convex_solver import *
@@ -45,15 +44,16 @@ def PC_registrate(type,json_path):
         """
 
         match_indices= find_descriptors_matches(descriptors_Y,descriptors_X,type,i)
+       
         #通过凸优化方法计算R，t
             #初始化R,t,使用奇异值分解【如果采取随机初始化误差会非常之大】
         R,t = ini_SVD_Rt(Selected[0][match_indices[:,0]],Selected[i][match_indices[:,1]])
 
             #松弛器
-        solver1 = LinearRelaxationSolver() #还算靠谱，位置不错，但是旋转的角度很差
-        solver2 = ConvexRelaxationSolver() #旋转角度不错
+        # solver1 = LinearRelaxationSolver() #还算靠谱，位置不错，但是旋转的角度很差。算了，一拖拉机
+        solver = ConvexRelaxationSolver() #旋转角度不错
             #解决:
-        R,t = ConvexSolveProblem(solver1,solver2,R,t,Selected[0][match_indices[:,0]],Selected[i][match_indices[:,1]],iters=1) 
+        R,t = ConvexSolveProblem(solver,R,t,Selected[0][match_indices[:,0]],Selected[i][match_indices[:,1]],iters=10) 
 
         print(R)
         print(t)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/bunny-pcd/"
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/room-pcd/"
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/temple-pcd/"
-    i = 0 # 0:bunny 1:room 2:temple
+    i = 2 # 0:bunny 1:room 2:temple
     types = ['bunny','room','temple']
     path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/"
     json_path = f"{path}{types[i]}-pcd/"

@@ -1,9 +1,12 @@
 # PointCloud_Registration
 Convex problem of  Point Cloud Registration
 
-python     3.8.18
-cvxpy      1.4.1
-open3d     0.17.0
-numpy      1.24.4
-scs        3.2.3
-tqdm       4.66.1
+ ```
+----main.py     主文件 
+----Convex_solver.py 凸优化求解器
+----desc_match.py 特征匹配：使用fpfh算法提取特征
+----FPFH_desc.py
+----utils.py
+```
+
+

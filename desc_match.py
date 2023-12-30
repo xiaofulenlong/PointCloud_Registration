@@ -19,13 +19,13 @@ def find_descriptors_matches(descriptors_Y, descriptors_X,type,num_i):
     def selected_points_num(type):
         if type == 'bunny':
             if num_i == 1:
-                top = 16
+                top = 8
             else:
                 top = 5
         elif type == 'room':
             top = 5
         elif type == 'temple':
-            top = 8
+            top = 6
         else:
             top = min(descriptors_Y.shape[0],descriptors_X.shape[0])
         return top

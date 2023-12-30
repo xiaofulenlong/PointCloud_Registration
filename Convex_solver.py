@@ -20,7 +20,7 @@ def ini_SVD_Rt(Y,X):
     H = np.dot(X_cor.T, Y_cor)
     U, S, Vt = np.linalg.svd(H)
     R = np.dot(Vt.T, U.T)
-    t = X_mean - np.dot(R, Y_mean)
+    t =  Y_mean - np.dot(R,X_mean)
     return R,t
 
 
@@ -123,7 +123,7 @@ class LinearRelaxationSolver:
 
 
 
-def ConvexSolveProblem(solver1,solver2,R,t,Y,X,iters):
+def ConvexSolveProblem( solver,R,t,Y,X,iters=10):
     """
     input:
         solver1,solver2:松弛器
@@ -138,20 +138,20 @@ def ConvexSolveProblem(solver1,solver2,R,t,Y,X,iters):
     
     idx = min(X.T.shape[0],Y.T.shape[0])
     #Y:[3,n],X:[3,n]
-    # for _ in tqdm(range(iters)):
+    # 使用SVD的初值迭代 
+    for _ in tqdm(range(iters)):
 
-    #     X_ = ((R @ copy.deepcopy(X)).T + t).T   
+        X_ = ((R @ copy.deepcopy(X)).T + t).T   
+        R_,t_ = solver.solve(X_ , Y , max_iters=600)
+        
+        if (np.linalg.norm(R_-R) < 1e-6):
+            break
 
-    #     R_, _ = solver2.solve(X_, Y )
-    #     _,t_ = solver1.solve(X , Y )
-    #     if (np.linalg.norm(R_-R) < 1e-6):
-    #         break
-
-    #     R = R_ @ R              #  更新 R, t
-    #     t = R_ @ t + t_
-    # X_ = ((R @ copy.deepcopy(X)).T + t).T       
-    R,t = solver2.solve(X , Y , max_iters=500)
-    # R,_ = solver1.solve(X, Y )
+        R = R_ @ R              #  更新 R, t
+        t = R_ @ t + t_
+   
+    # R,t = solver.solve(X , Y , max_iters=600)
+   
 
     return R,t
 

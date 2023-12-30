@@ -25,9 +25,9 @@ def compute_fpfh_descriptor(cloud_path,Point_index,type):
         
         elif type == 'temple':
             radius_normal = 0.5  
-            radius_feature = 1.2   
-            max_nn_norm = 500   
-            max_nn_fpfh = 1200   
+            radius_feature = 0.8  
+            max_nn_norm = 50   
+            max_nn_fpfh = 120    
         return radius_normal,radius_feature,max_nn_norm,max_nn_fpfh
 
 
