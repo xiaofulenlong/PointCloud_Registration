@@ -23,6 +23,15 @@ def readjson(path):
     pc_path2 = path+json_data['pcd_2']['pcd_name']
     pc_path3 = path+json_data['pcd_3']['pcd_name']
 
+
+    rotation1 = np.array(json_data['pcd_1']['rotation'])
+    rotation2 = np.array(json_data['pcd_2']['rotation'])
+    rotation3 = np.array(json_data['pcd_3']['rotation'])
+    
+    translation1 = np.array(json_data['pcd_1']['translation'])
+    translation2 = np.array(json_data['pcd_2']['translation'])
+    translation3 = np.array(json_data['pcd_3']['translation'])
+
     point_cloud1 = plyread(pc_path1)
     point_cloud2 = plyread(pc_path2)
     point_cloud3 = plyread(pc_path3)
@@ -31,7 +40,7 @@ def readjson(path):
     select_point2 = np.array([point_cloud2[row] for row in all_idx2])
     select_point3 = np.array([point_cloud3[row] for row in all_idx3])
     
-    return all_idx1,all_idx2,all_idx3,select_point1,select_point2,select_point3,pc_path1,pc_path2,pc_path3,point_cloud1,point_cloud2,point_cloud3
+    return [all_idx1,all_idx2,all_idx3],[select_point1,select_point2,select_point3],[pc_path1,pc_path2,pc_path3],[point_cloud1,point_cloud2,point_cloud3],[rotation1,rotation2,rotation3],[translation1,translation2,translation3]
 
 
 #读取点云数据
@@ -47,13 +56,13 @@ def plyread(path):
 
 #========== 可视化 ===============
 
-def Visual_Pc(pcd_nparrays, labels=None, path=None,isVisible=True):
+def Visual_Pc(pcd_nparrays,window_title="PC_Regi",isVisible=True):
     def changeToPcd(nparray):
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(nparray)
         return pcd
     
-    colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    colors = [[1, 0, 0], [0, 0, 1], [0, 1, 0]]
     all_pcd = o3d.geometry.PointCloud()
     for i, nparray in enumerate(pcd_nparrays):
         points = changeToPcd(nparray)
@@ -65,7 +74,7 @@ def Visual_Pc(pcd_nparrays, labels=None, path=None,isVisible=True):
         all_pcd += points
         
     if isVisible:
-        o3d.visualization.draw_geometries([all_pcd])
+        o3d.visualization.draw_geometries([all_pcd],window_name=window_title)
         
 
 

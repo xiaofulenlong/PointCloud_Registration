@@ -17,6 +17,6 @@ def select_keypoints(points,index,radius):
         selected[point_idx] = True
         visited[kdtree.query_radius([points[point_idx]], radius)[0]] = True
 
-    # return selected.nonzero()[0]
-    return index
+    return selected.nonzero()[0]
+    # return index
 

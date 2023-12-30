@@ -2,9 +2,9 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 
-def find_descriptors_matches(descriptors_Y, descriptors_X):
+def find_descriptors_matches(descriptors_Y, descriptors_X,type,num_i):
     """
-    为给定的两组描述符找到最接近的匹配.
+    为给定的两组描述符找到最接近的k个匹配点.
 
     Input:
         descriptors_Y: numpy[n,m]目标的特征描述符
@@ -16,13 +16,26 @@ def find_descriptors_matches(descriptors_Y, descriptors_X):
         
     """
     #匹配对的最大数目
-    top = min(descriptors_Y.shape[0],descriptors_X.shape[0])
-    #降噪,除去零向量
-    non_empty_Y = np.any(descriptors_Y, axis=1).nonzero()[0]
-    non_empty_X = np.any(descriptors_X, axis=1).nonzero()[0]
+    def selected_points_num(type):
+        if type == 'bunny':
+            if num_i == 1:
+                top = 16
+            else:
+                top = 5
+        elif type == 'room':
+            top = 5
+        elif type == 'temple':
+            top = 8
+        else:
+            top = min(descriptors_Y.shape[0],descriptors_X.shape[0])
+        return top
+    top = selected_points_num(type)
+    #降噪,除去零向量 【暂时不需要，因为在temple中可用点 <<<< 点云数目，去除0向量之后猛猛报错】
+    # non_empty_Y = np.any(descriptors_Y, axis=1).nonzero()[0]
+    # non_empty_X = np.any(descriptors_X, axis=1).nonzero()[0]
     distance_matrix = cdist(
-        descriptors_Y[non_empty_Y],
-        descriptors_X[non_empty_X]
+        descriptors_Y,
+        descriptors_X
     )
     match_point = []
     #开始配对:最近邻匹配

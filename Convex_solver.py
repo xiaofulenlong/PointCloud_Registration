@@ -136,21 +136,22 @@ def ConvexSolveProblem(solver1,solver2,R,t,Y,X,iters):
     if Y.shape[0] != 3: Y = Y.T
     if X.shape[0] != 3: X = X.T 
     
-
+    idx = min(X.T.shape[0],Y.T.shape[0])
     #Y:[3,n],X:[3,n]
-    for _ in tqdm(range(iters)):
+    # for _ in tqdm(range(iters)):
 
-        X_ = ((R @ copy.deepcopy(X)).T + t).T   
+    #     X_ = ((R @ copy.deepcopy(X)).T + t).T   
 
-        R_, _ = solver2.solve(X_, Y )
-        _,t_ = solver1.solve(X , Y )
-        if (np.linalg.norm(R_-R) < 1e-6):
-            break
+    #     R_, _ = solver2.solve(X_, Y )
+    #     _,t_ = solver1.solve(X , Y )
+    #     if (np.linalg.norm(R_-R) < 1e-6):
+    #         break
 
-        R = R_ @ R              #  更新 R, t
-        t = R_ @ t + t_
-         
-
+    #     R = R_ @ R              #  更新 R, t
+    #     t = R_ @ t + t_
+    # X_ = ((R @ copy.deepcopy(X)).T + t).T       
+    R,t = solver2.solve(X , Y , max_iters=500)
+    # R,_ = solver1.solve(X, Y )
 
     return R,t
 
