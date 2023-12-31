@@ -5,7 +5,8 @@ from plyfile import PlyData
 import json
 import numpy as np 
 import open3d as o3d
-
+import matplotlib.animation as animation
+import imageio
 #=========== load data =============
 #读取json中所需数据
 def readjson(path):
@@ -51,6 +52,72 @@ def plyread(path):
     plkdata = np.array(vertex_list)
     return plkdata
     
+#============= 保存提交结果 =============
+def save_result(pcd_nparrays, path,num,type):
+    num = num+1
+    # 保存结果为ply
+    ply_path = f"{path}{type}-{num}-registered.ply"
+    save_result_ply(pcd_nparrays[2], ply_path)
+    # 保存结果为GIF
+    GIF_path = f"{path}{type}-{num}.gif"
+    # save_result_GIF(pcd_nparrays, GIF_path)
+
+
+
+def save_result_ply(nparray, path):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(nparray)
+    o3d.io.write_point_cloud(path, pcd)
+
+def save_result_GIF(point_collections, savePath=None):
+    colors = [[1, 0, 0], [0, 0, 1], [0, 1, 0]]
+    point_cloud = o3d.geometry.PointCloud()
+
+    for i, points in enumerate(point_collections):
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(points)
+        pcd.paint_uniform_color(colors[i])
+        point_cloud += pcd
+
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    vis.add_geometry(point_cloud)
+
+    # 每次绕y轴旋转10度，获得旋转矩阵并扩展为4*4的transform矩阵
+    rotation_angle = 2
+    rotation_matrix = np.array(
+        [
+            [np.cos(np.radians(rotation_angle)), 0, np.sin(np.radians(rotation_angle))],
+            [0, 1, 0],
+            [
+                -np.sin(np.radians(rotation_angle)),
+                0,
+                np.cos(np.radians(rotation_angle)),
+            ],
+        ]
+    )
+    transform_matrix = np.eye(4)
+    transform_matrix[:3, :3] = rotation_matrix
+
+    images = []  # List to store individual frames
+
+    # Perform the rotation directly
+    for _ in range(180):  # 36 frames for a full rotation (adjust as needed)
+        point_cloud.transform(transform_matrix)
+        vis.update_geometry(point_cloud)
+        vis.poll_events()
+        vis.update_renderer()
+
+        # Capture the screen image
+        image = np.asarray(vis.capture_screen_float_buffer(), dtype=np.uint8) * 255
+        images.append(image)  # Convert to uint8
+
+    if savePath != None:
+        imageio.mimsave(savePath, images, fps=45)
+
+    # Destroy the window
+    vis.destroy_window()
+
 
 
 

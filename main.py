@@ -3,9 +3,9 @@ from FPFH_desc import *
 from desc_match import *
 from Convex_solver import *
 
-def PC_registrate(type,json_path):
-
-
+def PC_registrate(type,path):
+    json_path = f"{path}data/{type}-pcd/"
+    result_path  = f"{path}result/{type}/"
     #读取点云数据
     """
     idx: idx_Y,idx_X1,idx_X2:点云1(target),点云2,点云3的索引
@@ -65,7 +65,8 @@ def PC_registrate(type,json_path):
         mse_R = np.mean((R - rotation[i]) ** 2)
         mse_t = np.mean((t - translation[i]) ** 2)
         print(f'R_and_t_MSE: {mse_R , mse_t}')
-
+       
+        save_result([point_cloud[0], point_cloud[i],res],result_path,i ,type)
         Visual_Pc([point_cloud[0], point_cloud[i],res],"第{}只{}匹配".format(i,type))
 
 
@@ -77,9 +78,7 @@ if __name__ == "__main__":
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/bunny-pcd/"
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/room-pcd/"
     # json_path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/temple-pcd/"
-    i = 2 # 0:bunny 1:room 2:temple
+    i = 0 # 0:bunny 1:room 2:temple
     types = ['bunny','room','temple']
-    path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/data/"
-    json_path = f"{path}{types[i]}-pcd/"
-    
-    PC_registrate(types[i],json_path)
+    path = "/Users/hurenrong/workplace/课程课件/凸优化/期末pro/code/PointCloud_Registration/"
+    PC_registrate(types[i],path)
